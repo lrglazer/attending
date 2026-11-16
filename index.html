@@ -420,6 +420,22 @@ textarea.inp{font-family:var(--b);min-height:150px;resize:vertical;line-height:1
 @keyframes fade{from{opacity:0}}
 .modal{background:var(--card);color:var(--ink);border-radius:22px;max-width:560px;width:100%;padding:28px;box-shadow:0 30px 90px rgba(0,0,0,.4);max-height:90vh;overflow:auto}
 .modal h3{font-size:26px;font-weight:500;margin-bottom:8px}
+/* ---------- Ready Room access: track picker + pill ---------- */
+.rrpick{max-width:640px}
+.rrpick .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:16px 0 18px}
+.rrpick .tk{display:flex;align-items:center;gap:10px;text-align:left;padding:11px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit;cursor:pointer;transition:border-color .2s,transform .15s,background .2s}
+.rrpick .tk:hover{transform:translateY(-1px);border-color:var(--c)}
+.rrpick .tk i{width:14px;height:14px;border-radius:50%;background:var(--c);flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent)}
+.rrpick .tk b{display:block;font-size:14.5px;line-height:1.2}.rrpick .tk small{display:block;color:var(--mute);font-size:12px;line-height:1.3}
+.rrpick .tk[aria-pressed=true]{border-color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--card));transform:scale(1.02)}
+.rrpick .tk[disabled]{opacity:.55;cursor:default;transform:none}
+.rrpick .row{position:sticky;bottom:-28px;margin:0 -28px -28px;padding:14px 28px 22px;background:var(--card);border-top:1px solid var(--line)}
+.rrpick .msg{min-height:1.3em;font-size:14px;color:#c0392b;margin-top:-6px;margin-bottom:8px}
+.rrpill{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:90;display:inline-flex;align-items:center;gap:10px;padding:11px 18px;border-radius:999px;border:0;background:#141a26;color:#fff;font:600 14.5px var(--b,inherit);box-shadow:0 14px 40px rgba(0,0,0,.35);cursor:pointer;animation:pillin .5s both;max-width:calc(100vw - 24px)}
+.rrpill b{color:var(--gold,#d4ad55)}.rrpill .dot{width:9px;height:9px;border-radius:50%;background:#d4ad55;box-shadow:0 0 0 0 #d4ad5588;animation:ping 1.6s infinite}
+@keyframes pillin{from{opacity:0;transform:translate(-50%,16px)}}@keyframes ping{70%{box-shadow:0 0 0 9px transparent}}
+@media(max-width:520px){.rrpick .grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.rrpill,.rrpill .dot{animation:none}}
 .env{position:relative;width:min(560px,92vw);aspect-ratio:1.55;margin:0 auto}
 .env .back,.env .front,.env .flap{position:absolute;left:0;right:0}
 .env .back{inset:0;background:#e9dfca;border-radius:8px;box-shadow:0 30px 80px rgba(0,0,0,.4)}
@@ -2057,9 +2073,11 @@ window.QRsvg=function(text,fg,bg){var q=new QRCode(-1,L.M);q.addData(text);q.mak
 <script>/* ===================== Attending — core ===================== */
 const CFG = {
   brand: 'Attending',
-  checkout: 'https://readyroomcerts.com/readyroom/#attending',  // Ready Room hub checkout (single Stripe account)
+  checkout: 'https://readyroomcerts.com/readyroom/#course-attending',  // Ready Room hub checkout (single Stripe account)
+  rrApi: 'https://readyroomcerts.com',                                  // Ready Room API: /api/rr/attending/verify + /claim
+  access: 'https://readyroomcerts.com/readyroom/attending-access.html', // "Open Attending" page for buyers (logs in, sends #rr=TOKEN here)
   verifyBase: 'https://chalktalkstudy.com/verify',             // public certificate verification page
-  price: { school: 79, all: 149 },
+  price: { school: 79, all: 149 },                              // display only; Ready Room's catalog sets the real prices
   links: { pulse: 'https://chalktalkstudy.com/pulse/', sustained: 'https://claude.ai/artifact/UkBMXjp2trzfePBHTebNXq' },
   ownerHash: '99bfdc35'                                         // FNV-1a hash of the owner preview code
 };
@@ -2205,7 +2223,7 @@ function footer() {
   <div><a class="brand" href="#home" style="margin-bottom:12px">${LOGO}<span>Attending<i>.</i></span></a><p style="max-width:340px">Professional school prep you actually live: medicine and the health professions, plus law. Apply, take your oath, sit in lecture, see patients or clients, sit boards and match, before you ever submit a real application.</p></div>
   <div><h5>Schools</h5>${ATT.S.map(s => `<a href="#s-${s.id}">${esc(s.short)}</a>`).join('')}</div>
   <div><h5>Explore</h5><a href="#compare">Compare paths</a><a href="#fit">Find your fit</a><a href="#pricing">Pricing</a><a href="#verify">Verify a certificate</a><a href="#transcript">My transcript</a><a href="#terms">Terms &amp; disclaimers</a></div>
-  <div><h5>Study network</h5><a href="https://chalktalkstudy.com" target="_blank" rel="noopener">Chalk Talk</a><a href="https://chalktalkstudy.com/readyroom/" target="_blank" rel="noopener">Ready Room</a><a href="${CFG.links.pulse}" target="_blank" rel="noopener">Pulse · MCAT prep</a><a href="${CFG.links.sustained}" target="_blank" rel="noopener">Sustained · LSAT &amp; bar prep</a></div>
+  <div><h5>Study network</h5><a href="https://chalktalkstudy.com" target="_blank" rel="noopener">Chalk Talk</a><a href="https://readyroomcerts.com/readyroom/" target="_blank" rel="noopener">Ready Room</a><a href="${CFG.links.pulse}" target="_blank" rel="noopener">Pulse · MCAT prep</a><a href="${CFG.links.sustained}" target="_blank" rel="noopener">Sustained · LSAT &amp; bar prep</a></div>
   </div>
   <p class="legal">Attending is an educational simulation for students exploring and preparing for health-professions and law programs. Its “tracks” are learning simulations, not institutions: Attending is not a college, university, medical, dental, pharmacy, veterinary, optometry, podiatry, chiropractic, psychology, nursing, therapy, physician assistant or law school; it is not accredited, does not grant degrees, academic credit, licenses or clinical privileges, does not guarantee admission to any program or a passing score on any exam, and does not prepare anyone to treat real patients or practice law. Nothing here is medical, legal or other professional advice. Board-style exams are written in the style of public exam outlines and are not affiliated with or endorsed by the NBME, FSMB, AAMC, ADA/JCNDE, NCCPA, NABP, ICVA, NCSBN, FSBPT, NBEO, NBOME, NBPME, NBCE, ASPPB, NCBE, LSAC, NRMP or any school. Exam and program names (e.g., USMLE®, COMLEX-USA®, MCAT®, LSAT®, NCLEX®, NAPLEX®, PANCE®) are trademarks of their owners, used only to describe what the content prepares for. All patients, clients, faculty, hospitals and employers shown are fictional; resemblance to real people is coincidental. Court decisions discussed are real public opinions, summarized for teaching. <a href="#terms">Terms &amp; disclaimers</a></p>
   <p class="legal">© ${new Date().getFullYear()} Attending · a Chalk Talk study site</p></div></footer>`;
@@ -2215,6 +2233,109 @@ function page(html, { dark = false, s = null } = {}) {
   $('#app').innerHTML = topnav(dark, s) + `<main id="view">${html}</main>` + footer();
   scrollTo(0, 0);
 }
+
+/* ---------- Ready Room access bridge ----------
+   Buyers open Attending from Ready Room (CFG.access), which sends them here as #rr=TOKEN (10-minute signed token).
+   We verify it with Ready Room (CFG.rrApi), unlock what they own, keep the returned 180-day device token in
+   localStorage, and re-check it quietly on later visits. One-track buyers get a credit and pick their track here.
+   The owner preview code (ST.unlock.code) is local and never relocked. No personal data comes back from Ready Room. */
+const RRB = (() => {
+  const DEV = 'attending_rr_device';
+  let hashTok = '';
+  function takeHash() { // reads #rr=TOKEN once and removes it from the address bar (and from history)
+    const m = /^#rr=([A-Za-z0-9_.%-]{8,600})$/.exec(location.hash || ''); if (!m) return '';
+    let t = ''; try { t = decodeURIComponent(m[1]); } catch (e) { }
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { }
+    return t;
+  }
+  hashTok = takeHash();
+  // already on the page when the link is opened (same tab): this runs before the router's own hashchange handler
+  addEventListener('hashchange', () => { const t = takeHash(); if (t) { hashTok = t; boot(); } });
+  // older owner-code unlocks predate the bridge: keep them as code unlocks
+  if (ST.unlock && ST.unlock.all && !ST.rr && !ST.unlock.code) { ST.unlock.code = true; save(); }
+  const dev = () => { try { return localStorage.getItem(DEV) || ''; } catch (e) { return ''; } };
+  const setDev = t => { try { t ? localStorage.setItem(DEV, t) : localStorage.removeItem(DEV); } catch (e) { } };
+  function apply(j) {
+    const keep = ST.unlock && ST.unlock.code ? { all: true, code: true } : {};
+    ST.unlock = keep;
+    if (j && j.all) ST.unlock.all = true;
+    ((j && j.tracks) || []).forEach(id => { if (/^[a-z]{1,12}$/.test(id)) ST.unlock[id] = true; });
+    ST.rr = j ? { all: !!j.all, tracks: (j.tracks || []).filter(id => /^[a-z]{1,12}$/.test(id)), credits: Math.max(0, j.credits | 0), at: Date.now() } : null;
+    if (!ST.rr) delete ST.rr;
+    if (j && j.device && j.device.t) setDev(j.device.t);
+    save();
+  }
+  async function call(path, opts) {
+    const r = await fetch(CFG.rrApi + path, Object.assign({ cache: 'no-store', credentials: 'omit' }, opts || {}));
+    let j = null; try { j = await r.json(); } catch (e) { }
+    return { status: r.status, ok: r.ok, j: j || {} };
+  }
+  async function verify(t) {
+    const r = await call('/api/rr/attending/verify?t=' + encodeURIComponent(t));
+    if (r.status === 401) return { bad: true };
+    if (!r.ok || !r.j.ok) return { down: true };
+    return { j: r.j };
+  }
+  const credits = () => (ST.rr && !ST.rr.all ? ST.rr.credits : 0);
+  function rerender() { try { route(); } catch (e) { } pill(); }
+  function pill() {
+    let p = document.querySelector('.rrpill'); const n = credits();
+    if (!n || document.querySelector('.overlay.rr')) { if (p) p.remove(); return; }
+    if (!p) { p = document.createElement('button'); p.type = 'button'; p.className = 'rrpill'; p.onclick = () => picker(); document.body.appendChild(p); }
+    p.innerHTML = `<span class="dot"></span>You have <b>${n} track${n > 1 ? 's' : ''}</b> to choose`;
+  }
+  function picker() {
+    const n = credits(); if (!n) { pill(); return; }
+    document.querySelectorAll('.overlay.rr').forEach(o => o.remove()); pill();
+    const ov = document.createElement('div'); ov.className = 'overlay rr'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-labelledby', 'rrpt');
+    let sel = '';
+    ov.innerHTML = `<div class="modal rrpick"><div class="eyebrow">Ready Room · your purchase</div><h3 id="rrpt">You have ${n} track${n > 1 ? 's' : ''} to choose</h3>
+      <p class="muted">Pick the track you want to experience. It unlocks right away on this device and stays with your Ready Room account. Choose carefully: a pick can't be swapped later.</p>
+      <div class="grid">${ATT.S.map(s => { const own = unlocked(s.id); return `<button type="button" class="tk" data-id="${esc(s.id)}" style="--c:${esc(s.hood)}" ${own ? 'disabled' : ''} aria-pressed="false"><i></i><span><b>${esc(s.short)}${own ? ' · ✓ open' : ''}</b><small>${esc(s.kind || '')}</small></span></button>`; }).join('')}</div>
+      <div class="msg" id="rrmsg" aria-live="polite"></div>
+      <div class="row"><button class="btn btn-soft" type="button" id="rrlater">Later</button><span class="spacer"></span><button class="btn btn-gold" type="button" id="rrgo" disabled>Pick a track</button></div></div>`;
+    document.body.appendChild(ov);
+    const close = () => { ov.remove(); pill(); };
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    ov.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    $('#rrlater', ov).onclick = close;
+    $$('.tk', ov).forEach(b => b.onclick = () => { sel = b.dataset.id; $$('.tk', ov).forEach(x => x.setAttribute('aria-pressed', x === b)); const go = $('#rrgo', ov); go.disabled = false; go.textContent = 'Unlock ' + ((ATT.byId[sel] || {}).short || sel); });
+    $('#rrgo', ov).onclick = async () => {
+      const t = dev(); const btn = $('#rrgo', ov); if (!sel) return;
+      if (!t) { $('#rrmsg', ov).innerHTML = `Your access link expired. <a href="${CFG.access}">Open Attending again from Ready Room</a>.`; return; }
+      btn.disabled = true; btn.textContent = 'Unlocking…';
+      try {
+        const r = await call('/api/rr/attending/claim', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ t, track: sel }) });
+        if (r.ok && r.j.ok) { apply(r.j); ov.remove(); const s = ATT.byId[sel]; toast(`${esc(s ? s.short : sel)} is unlocked. Welcome to your track.`); confetti(s ? [s.hood, '#d4ad55', '#fff'] : undefined); if (s) go('s-' + s.id); else rerender(); pill(); return; }
+        if (r.status === 401) { setDev(''); $('#rrmsg', ov).innerHTML = `Your access link expired. <a href="${CFG.access}">Open Attending again from Ready Room</a>.`; }
+        else $('#rrmsg', ov).textContent = r.j.error || 'Something went wrong. Please try again.';
+      } catch (e) { $('#rrmsg', ov).textContent = 'Couldn\'t reach Ready Room. Check your connection and try again.'; }
+      btn.disabled = false; btn.textContent = 'Unlock ' + ((ATT.byId[sel] || {}).short || sel);
+    };
+    const first = $('.tk:not([disabled])', ov); if (first) first.focus();
+  }
+  async function boot() {
+    if (hashTok) {
+      const tok = hashTok; hashTok = '';
+      let r; try { r = await verify(tok); } catch (e) { r = { down: true }; }
+      if (r.j) {
+        apply(r.j); rerender();
+        if (r.j.credits > 0 && !r.j.all) picker();
+        else if (r.j.all || (r.j.tracks || []).length) { toast(r.j.all ? 'Every track is unlocked. Enjoy the experience.' : 'Your track' + (r.j.tracks.length > 1 ? 's are' : ' is') + ' unlocked on this device.'); confetti(); }
+        else toast(`No Attending tracks on that Ready Room account yet. <a href="${CFG.checkout}" style="color:inherit;font-weight:700">Get one →</a>`);
+        return;
+      }
+      if (r.bad) toast(`That access link expired. <a href="${CFG.access}" style="color:inherit;font-weight:700">Open it again from Ready Room →</a>`);
+      else toast('Couldn\'t reach Ready Room right now. Refresh in a moment.');
+    }
+    const t = dev(); if (!t) { pill(); return; }
+    let r; try { r = await verify(t); } catch (e) { r = { down: true }; }
+    if (r.j) { const before = JSON.stringify(ST.unlock); apply(r.j); if (JSON.stringify(ST.unlock) !== before) rerender(); else pill(); }
+    else if (r.bad) { setDev(''); const before = JSON.stringify(ST.unlock); apply(null); if (JSON.stringify(ST.unlock) !== before) rerender(); }
+    // r.down: keep what this device already had (offline or Ready Room briefly unavailable)
+  }
+  return { boot, picker, credits, apply, verify };
+})();
 
 /* ---------- router ---------- */
 const ROUTES = {};
@@ -2232,18 +2353,24 @@ const go = h => { if (location.hash === '#' + h) route(); else location.hash = h
 /* ---------- gating ---------- */
 function wall(s, what) {
   return `<div class="wall">${ic('lock', 30)}<div class="eyebrow" style="margin-top:10px">Full program</div><h3>${esc(what || 'This part of ' + s.title)} is in the full program</h3>
-  <p>Unlock every course, lab, patient, the OSCE, boards, Match Day and your verifiable certificate of completion. One payment, lifetime access.</p>
-  <div class="row"><a class="btn btn-gold" href="${CFG.checkout}" target="_blank" rel="noopener">Unlock ${esc(s.short)} · $${CFG.price.school}</a><a class="btn btn-ghost" href="#pricing">All schools · $${CFG.price.all}</a></div><p class="muted" style="font-size:12.5px;margin-top:8px">Educational simulation · not a degree or license · see <a href="#terms">terms</a></p>
-  <p style="margin:18px auto 0;font-size:13px">Already paid? <a href="#unlock" style="color:var(--gold)">Enter your access code</a></p></div>`;
+  <p>Unlock every course, lab, patient, the OSCE, boards, Match Day and your certificate of completion for this track. One payment on Ready Room.</p>
+  <div class="row"><a class="btn btn-gold" href="${CFG.checkout}" target="_blank" rel="noopener">Unlock ${esc(s.short)} · $${CFG.price.school}</a><a class="btn btn-ghost" href="${CFG.checkout}" target="_blank" rel="noopener">All tracks · $${CFG.price.all}</a></div><p class="muted" style="font-size:13px;margin-top:8px">$${CFG.price.school} per track · $${CFG.price.all} all tracks · Included in the Ready Room Pass</p><p class="muted" style="font-size:12.5px;margin-top:8px">Educational simulation · not a degree or license · see <a href="#terms">terms</a></p>
+  <p style="margin:18px auto 0;font-size:13px">Already bought on Ready Room? <a href="${CFG.access}" style="color:var(--gold)">Open your access</a>${RRB.credits() ? ` · <a href="#" onclick="RRB.picker();return false" style="color:var(--gold)">Choose your track</a>` : ''}</p></div>`;
 }
 ROUTES.terms = () => { page(`<section class="s"><div class="wrap narrow" style="max-width:780px"><div class="eyebrow">Legal</div><h1 style="font-family:var(--d);font-weight:500;font-size:44px;margin:6px 0 18px">Terms &amp; disclaimers</h1><div class="card terms">${TERMS}</div></div></section>`); };
 ROUTES.unlock = function () {
-  page(`<div class="narrow" style="padding:70px 22px"><div class="card"><h3>Enter your access code</h3><p class="muted">After checkout in the Ready Room you'll receive an access code. Enter it here to unlock your programs on this device.</p>
-  <div class="row" style="margin-top:14px"><input class="inp" id="ac" placeholder="Access code" style="max-width:320px"><button class="btn btn-hood" id="acb">Unlock</button></div><p id="acm" class="muted" style="margin-top:10px"></p></div></div>`);
+  const r = ST.rr;
+  page(`<div class="narrow" style="padding:70px 22px"><div class="card rrcard"><div class="eyebrow">Your access</div><h3>Already bought on Ready Room?</h3>
+  <p class="muted">Attending is sold through Ready Room. Open your access there and you'll land back here with your tracks unlocked on this device.</p>
+  ${r ? `<p style="margin-top:12px"><b>On this device:</b> ${r.all ? 'every track' : (r.tracks || []).length ? (r.tracks || []).map(id => esc((ATT.byId[id] || {}).short || id)).join(', ') : 'no tracks yet'}${r.credits ? ` · <b>${r.credits} track${r.credits > 1 ? 's' : ''} to choose</b>` : ''}</p>` : ''}
+  <div class="row" style="margin-top:14px"><a class="btn btn-gold" href="${CFG.access}">Open your access →</a>${RRB.credits() ? `<button class="btn btn-hood" id="pick">Choose your track</button>` : ''}<a class="btn btn-ghost" href="${CFG.checkout}" target="_blank" rel="noopener">Buy on Ready Room</a></div></div>
+  <div class="card" style="margin-top:18px"><h3 style="font-size:20px">Have a preview code?</h3><p class="muted">Preview codes are for the site owner and reviewers.</p>
+  <div class="row" style="margin-top:14px"><input class="inp" id="ac" placeholder="Preview code" aria-label="Preview code" style="max-width:320px"><button class="btn btn-hood" id="acb">Unlock</button></div><p id="acm" class="muted" style="margin-top:10px"></p></div></div>`);
+  const pk = $('#pick'); if (pk) pk.onclick = () => RRB.picker();
   $('#acb').onclick = () => {
     const v = $('#ac').value.trim().toUpperCase();
-    if (fnv(v) === CFG.ownerHash) { ST.unlock.all = true; save(); toast('All schools unlocked on this device.'); confetti(); setTimeout(() => go('schools'), 900); }
-    else $('#acm').textContent = 'That code isn\'t valid. Codes come from your Ready Room receipt.';
+    if (fnv(v) === CFG.ownerHash) { ST.unlock.all = true; ST.unlock.code = true; save(); toast('All tracks unlocked on this device.'); confetti(); setTimeout(() => go('schools'), 900); }
+    else $('#acm').textContent = 'That preview code isn\'t valid. Bought on Ready Room? Use “Open your access” above.';
   };
 };
 
@@ -2355,9 +2482,9 @@ function compareTable() {
 function pricing() {
   return `<div class="price">
    <div class="plan"><div class="eyebrow">Preview</div><div class="amt">Free</div><p class="muted">Test-drive any school.</p><ul><li>Application + MMI interview</li><li>Acceptance letter + white coat ceremony</li><li>Student portal and full syllabus</li><li>First lesson, first lab, first patient</li></ul><a class="btn btn-ghost" href="#schools">Start free</a></div>
-   <div class="plan best"><div class="eyebrow">One school</div><div class="amt">$${CFG.price.school}<small> once</small></div><p class="muted">The full program for the school you're aiming at.</p><ul><li>Every course, lesson and block exam</li><li>All labs and patient simulations</li><li>OSCE station + board-style exam</li><li>Match Day + transcript</li><li>Verifiable certificate of completion</li></ul><a class="btn btn-gold" href="${CFG.checkout}" target="_blank" rel="noopener">Enroll in one school</a></div>
-   <div class="plan"><div class="eyebrow">All-Access</div><div class="amt">$${CFG.price.all}<small> once</small></div><p class="muted">Undecided? Attend every school.</p><ul><li>All ${ATT.S.length} schools, everything included</li><li>A certificate for each school you finish</li><li>New courses as they're added</li><li>Best for pre-health advising groups</li></ul><a class="btn btn-ghost" href="${CFG.checkout}" target="_blank" rel="noopener">Get All-Access</a></div>
-  </div><p class="muted" style="font-size:13px;margin-top:14px">Checkout runs securely through the Ready Room. Already paid? <a href="#unlock" style="color:var(--gold)">Enter your access code.</a></p>`;
+   <div class="plan best"><div class="eyebrow">One track</div><div class="amt">$${CFG.price.school}<small> per track</small></div><p class="muted">The full experience for the track you're aiming at. Pick it right here after checkout.</p><ul><li>Every course, lesson and block exam</li><li>All labs and patient simulations</li><li>OSCE station + board-style exam</li><li>Match Day + transcript</li><li>Verifiable certificate of completion</li></ul><a class="btn btn-gold" href="${CFG.checkout}" target="_blank" rel="noopener">Get one track</a></div>
+   <div class="plan"><div class="eyebrow">All tracks</div><div class="amt">$${CFG.price.all}<small> all tracks</small></div><p class="muted">Undecided? Experience every track.</p><ul><li>All ${ATT.S.length} tracks, everything included</li><li>A certificate for each school you finish</li><li>New courses as they're added</li><li>Best for pre-health advising groups</li></ul><a class="btn btn-ghost" href="${CFG.checkout}" target="_blank" rel="noopener">Get all tracks</a></div>
+  </div><p class="muted" style="font-size:13px;margin-top:14px"><b>Included in the Ready Room Pass</b> (every Ready Room course, monthly or yearly). Checkout runs securely through Ready Room. Attending is an educational experience of professional school; it is not equivalent to, and doesn't replace, any real program. Already bought on Ready Room? <a href="${CFG.access}" style="color:var(--gold)">Open your access</a>.</p>`;
 }
 function faq() {
   return [['Is this a real medical or law school?', 'No. Attending is a preparation and career-exploration program. It recreates the structure and feel of professional school so you can decide on a path and start strong. It does not grant a degree, academic credit or any license, and nothing here qualifies anyone to care for real patients.'],
@@ -7292,5 +7419,5 @@ ATT.lessons('legal', 'sjd', [{
 }]);
 
 </script>
-<script>route();</script>
+<script>route();RRB.boot();</script>
 </body></html>
