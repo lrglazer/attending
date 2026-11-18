@@ -2078,7 +2078,7 @@ const CFG = {
   access: 'https://readyroomcerts.com/readyroom/attending-access.html', // "Open Attending" page for buyers (logs in, sends #rr=TOKEN here)
   verifyBase: 'https://chalktalkstudy.com/verify',             // public certificate verification page
   price: { school: 79, all: 149 },                              // display only; Ready Room's catalog sets the real prices
-  links: { pulse: 'https://chalktalkstudy.com/pulse/', sustained: 'https://claude.ai/artifact/UkBMXjp2trzfePBHTebNXq' },
+  links: { pulse: 'https://chalktalkstudy.com/pulse/', sustained: 'https://readyroomcerts.com/sustained/' },
   ownerHash: '99bfdc35'                                         // FNV-1a hash of the owner preview code
 };
 const ATT = { S: [], byId: {} };
@@ -3706,7 +3706,8 @@ function heroAnim(root) {
   const b = $('.herohost .bubble', root); let bi = 0;
   if (b && !RM) { const iv = setInterval(() => { if (!b.isConnected) return clearInterval(iv); bi = (bi + 1) % REMY_LINES.length; b.classList.remove('in'); void b.offsetWidth; b.textContent = REMY_LINES[bi]; b.classList.add('in'); }, 5200); }
   // count-up stats
-  $$('[data-count]', root).forEach(n => { const end = +n.dataset.count, suf = n.dataset.suf || ''; if (RM) { n.textContent = end + suf; return; } const t0 = performance.now(); const f = t => { if (!n.isConnected) return; const p = Math.min(1, (t - t0) / 1400), e = 1 - Math.pow(1 - p, 3); n.textContent = Math.round(end * e) + suf; if (p < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); });
+  $$('[data-count]', root).forEach(n => { const end = +n.dataset.count, suf = n.dataset.suf || ''; if (RM || end < 100) { // small counts (like the 14 schools) show their real value right away, never a half-counted number
+    n.textContent = end + suf; return; } const t0 = performance.now(); const f = t => { if (!n.isConnected) return; const p = Math.min(1, (t - t0) / 1400), e = 1 - Math.pow(1 - p, 3); n.textContent = Math.round(end * e) + suf; if (p < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); });
   // gentle parallax
   if (!RM && matchMedia('(pointer:fine)').matches) {
     const layers = $$('.px', root); let raf = 0, mx = 0, my = 0;
